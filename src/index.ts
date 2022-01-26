@@ -10,15 +10,28 @@ config();
 
 const entryStorage: Record<string, FeedEntry[]> = {};
 
+// Parse JSON body.
 const app = express();
 app.use(bodyParser.json());
 
+// Setup time for sending the ingest.
+//
+// Ideally, it's 10 PM PST every day.
 const timeToSendIngest = new RecurrenceRule();
 timeToSendIngest.tz = "America/Los_Angeles";
 timeToSendIngest.minute = 0;
 timeToSendIngest.second = 0;
 timeToSendIngest.hour = 10;
 
+/**
+ * Sends the ingest to Discord.
+ * 
+ * The function builds a description string out of all queued feed entries
+ * for that day and then adds some zingers in case the number isn't 5
+ * feed entries specifically.
+ * 
+ * @returns The message to relay to the web client, if any.
+ */
 const sendIngest = async () => {
     Logger.info('Sending feed for the day!');
     const webhook = new WebhookClient({ url: process.env.DISCORD_WEBHOOK_URL });
@@ -26,6 +39,7 @@ const sendIngest = async () => {
     const date = today.toFormat("LLL dd, yyyy");
     const digest = entryStorage[date];
     let embedText = "";
+    // It's possible I didn't make any entries or it's empty for the day.
     if (!digest || digest.length === 0) {
         const webhookEmbed = new MessageEmbed()
             .setTitle(`Nothing today! Sorry! 😅`)
@@ -38,21 +52,25 @@ const sendIngest = async () => {
                 embeds: [webhookEmbed],
             });
     } else {
+        // ..otherwise, make the description text.
         digest.forEach((entry, index) => {
             embedText += `**${index + 1}.** _${entry.title}_: ${entry.link}`
             embedText += "\n";
             embedText += `_Feed:_ \`${entry.feed}\``
             embedText += "\n";
         })
+        // If too few...
         if (digest.length < 5) {
             embedText += "\n";
             embedText += "Matei was quite lazy today. He didn't send 5 articles! 🙄";
             embedText += "\n";
+        // If too many...
         } else if (digest.length > 5) {
             embedText += "\n";
             embedText += "Sorry for the amount! Just a few more!";
             embedText += "\n";
         }
+        // Either way, send what we got.
         embedText = embedText.substring(0, embedText.length - 1);
         const webhookEmbed = new MessageEmbed()
         .setTitle(`Posts for ${date}`)
@@ -70,7 +88,7 @@ const sendIngest = async () => {
 };
 
 /**
- * Cronjob to run Notion Event Sync Pipeline every 30 minutes.
+ * Cronjob to send the ingest every day at 10 PM PST.
  */
 scheduleJob(timeToSendIngest, async () => {
     sendIngest();
@@ -82,6 +100,9 @@ export interface FeedEntry {
     title: string;
 };
 
+/**
+ * Route to trigger sync manually. Does not disrupt cronjob.
+ */
 app.get('/ingest', async (req, res) => {
     const key = req.body.key;
     if (key != process.env.KEY) {
@@ -93,7 +114,7 @@ app.get('/ingest', async (req, res) => {
 })
 
 /**
- * Route to trigger sync manually. Does not disrupt cronjob.
+ * Route to add feed entry to daily post. Will add to next day's ingest.
  */
 app.post('/ingest', async (req, res) => {
     try {
@@ -115,6 +136,7 @@ app.post('/ingest', async (req, res) => {
     }
 });
 
+// Check for envvars and run.
 if (!process.env.DISCORD_WEBHOOK_URL) {
     Logger.error("Cannot run! Need Discord webhook URL!");
 }
