@@ -25,7 +25,7 @@
   });
     
   /**
-   * Logger for the Notion Event Pipeline with split transports.
+   * Logger for the Delivery Boy with split transports.
    *
    * Logger saves colorized output to standard out and creates a daily rotated log file
    * of the same logs for safekeeping purposes.
