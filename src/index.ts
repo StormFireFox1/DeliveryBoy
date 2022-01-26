@@ -152,6 +152,15 @@ app.post('/ingest', checkForKey, async (req, res) => {
  */
 app.put('/ingest', checkForKey, async (req, res) => {
     try {
+        if (!req.body.link) {
+            throw new Error('Missing link field!');
+        }
+        if (!req.body.title) {
+            throw new Error('Missing title field!');
+        }
+        if (!req.body.feed) {
+            throw new Error('Missing feed field!');
+        }
         const feedEntry: FeedEntry = req.body;
         let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
         if (timeForDigest.hour > 10) {
