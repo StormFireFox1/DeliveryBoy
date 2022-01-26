@@ -101,14 +101,46 @@ export interface FeedEntry {
 };
 
 /**
- * Route to trigger sync manually. Does not disrupt cronjob.
+ * Middleware function to check for correct key. Should match envvar exactly.
  */
-app.put('/ingest', async (req, res) => {
-    const key = req.body.key;
-    if (key != process.env.KEY) {
-        res.status(403).send("Wrong key!");
+ const checkForKey = (req, res, next) => {
+    const bearerHeader = req.headers['Authorization'];
+    if (bearerHeader) {
+      const bearer = bearerHeader.split(' ');
+      const bearerToken = bearer[1];
+      if (bearerToken === process.env.KEY) {
+        req.token = bearerToken;
+        next();
+      } else {
+        res.sendStatus(403).send('Wrong key!');
+      }
+    } else {
+      // No key!
+      res.sendStatus(403).send('No key!');
+    }
+};
+
+/**
+ * Route to get next ingest queued.
+ */
+app.get('/ingest', checkForKey, async (req, res) => {
+    let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
+        if (timeForDigest.hour > 10) {
+            timeForDigest = timeForDigest.plus({days: 1});
+        }
+    const date = timeForDigest.toFormat("LLL dd, yyyy");
+    if (!entryStorage[date]) {
+        entryStorage[date] = [];
+        res.status(404).json([]);
         return;
     }
+    res.json(entryStorage[date]);
+})
+
+/**
+ * Route to trigger sync manually. Does not disrupt cronjob.
+ */
+app.post('/ingest', checkForKey, async (req, res) => {
     const output = await sendIngest();
     res.send(output);
 })
@@ -116,7 +148,7 @@ app.put('/ingest', async (req, res) => {
 /**
  * Route to add feed entry to daily post. Will add to next day's ingest.
  */
-app.post('/ingest', async (req, res) => {
+app.put('/ingest', checkForKey, async (req, res) => {
     try {
         const feedEntry: FeedEntry = req.body;
         let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
