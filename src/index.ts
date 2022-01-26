@@ -129,7 +129,7 @@ app.post('/ingest', async (req, res) => {
             entryStorage[date] = [];
         } 
         entryStorage[date].push(feedEntry);
-        Logger.info(`Saved feed entry '${feedEntry.title}' for ${date}!`);
+        Logger.info(`Saved feed entry '${feedEntry.title}' with URL '${feedEntry.link}' from feed '${feedEntry.feed}' for ${date}!`);
         res.send('Saved feed entry!');
     } catch (e) {
         res.status(400).send(`Cannot parse feed JSON: ${e}`);
