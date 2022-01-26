@@ -171,9 +171,9 @@ app.put('/ingest', checkForKey, async (req, res) => {
 // Check for envvars and run.
 if (!process.env.DISCORD_WEBHOOK_URL) {
     Logger.error("Cannot run! Need Discord webhook URL!");
-}
-if (!process.env.KEY) {
+} else if (!process.env.KEY) {
     Logger.error("Cannot run! No auth key for manual digest call!");
+} else {
+    Logger.info('Ready. Listening on port 8099!');
+    app.listen(8099, 'localhost');
 }
-Logger.info('Ready. Listening on port 8099!');
-app.listen(8099, 'localhost');
