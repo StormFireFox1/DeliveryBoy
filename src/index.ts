@@ -103,7 +103,7 @@ export interface FeedEntry {
 /**
  * Route to trigger sync manually. Does not disrupt cronjob.
  */
-app.get('/ingest', async (req, res) => {
+app.put('/ingest', async (req, res) => {
     const key = req.body.key;
     if (key != process.env.KEY) {
         res.status(403).send("Wrong key!");
