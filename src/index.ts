@@ -104,7 +104,7 @@ export interface FeedEntry {
  * Middleware function to check for correct key. Should match envvar exactly.
  */
  const checkForKey = (req, res, next) => {
-    const bearerHeader = req.headers['Authorization'];
+    const bearerHeader = req.headers['authorization'];
     if (bearerHeader) {
       const bearer = bearerHeader.split(' ');
       const bearerToken = bearer[1];
@@ -112,11 +112,13 @@ export interface FeedEntry {
         req.token = bearerToken;
         next();
       } else {
-        res.sendStatus(403).send('Wrong key!');
+        res.status(403).send('Wrong key!');
+        return;
       }
     } else {
       // No key!
-      res.sendStatus(403).send('No key!');
+      res.status(403).send('No key!');
+      return;
     }
 };
 
