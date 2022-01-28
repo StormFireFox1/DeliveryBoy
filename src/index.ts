@@ -34,7 +34,6 @@ timeToSendIngest.hour = 10;
  */
 const sendIngest = async () => {
     Logger.info('Sending feed for the day!');
-    const webhook = new WebhookClient({ url: process.env.DISCORD_WEBHOOK_URL });
     const today = DateTime.now().setZone("America/Los_Angeles");
     const date = today.toFormat("LLL dd, yyyy");
     const digest = entryStorage[date];
@@ -48,9 +47,13 @@ const sendIngest = async () => {
             .setFooter({
                 text: "Disclaimer: It's possible I missed all of Matei's messages. Oops.",
             });
-            await webhook.send({
-                embeds: [webhookEmbed],
-            });
+            const webhookURLs = process.env.DISCORD_WEBHOOK_URL.split(",");
+            await Promise.all(webhookURLs.map(async (url) => {
+                const webhook = new WebhookClient({ url });
+                await webhook.send({
+                    embeds: [webhookEmbed],
+                });
+            }));
     } else {
         // ..otherwise, make the description text.
         digest.forEach((entry, index) => {
@@ -79,9 +82,13 @@ const sendIngest = async () => {
         .setFooter({
             text: "Disclaimer: This is not sorted in any particular order of interest."
         });
-        await webhook.send({
-            embeds: [webhookEmbed],
-        });
+        const webhookURLs = process.env.DISCORD_WEBHOOK_URL.split(",");
+        await Promise.all(webhookURLs.map(async (url) => {
+            const webhook = new WebhookClient({ url });
+            await webhook.send({
+                embeds: [webhookEmbed],
+            });
+        }));
     }
     Logger.info("Done with sending ingest!");
     return "Done!";
