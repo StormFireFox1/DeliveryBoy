@@ -219,3 +219,6 @@ dist
 .env*
 !.env.example
 build/
+
+# SQLite database
+delivery-boy.db
