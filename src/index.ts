@@ -5,10 +5,11 @@ import { DateTime } from 'luxon';
 import { scheduleJob, RecurrenceRule } from 'node-schedule';
 import bodyParser from 'body-parser';
 import { MessageEmbed, WebhookClient } from 'discord.js';
+import { PrismaClient } from '@prisma/client';
 
 config();
 
-const entryStorage: Record<string, FeedEntry[]> = {};
+const prisma = new PrismaClient();
 
 // Parse JSON body.
 const app = express();
@@ -35,12 +36,18 @@ timeToSendIngest.hour = 10;
  */
 const sendIngest = async () => {
     Logger.info('Sending feed for the week!');
-    const today = DateTime.now().setZone("America/Los_Angeles");
-    let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
     // Get the next Sunday 10 AM of the week.
-    timeForDigest = timeForDigest.set({ weekday: 7, hour: 10, second: 0, minute: 0 });
-    const date = timeForDigest.toFormat("LLL dd, yyyy");
-    const digest = entryStorage[date];
+    const timeForDigest = DateTime.now()
+      .setZone("America/Los_Angeles")
+      .set({ weekday: 7, hour: 10, second: 0, minute: 0 });
+    const digest = await prisma.feedEntry.findMany({
+        where: {
+            date: {
+                gte: timeForDigest.minus({ weeks: 1 }).toJSDate(),
+                lt: timeForDigest.toJSDate(),
+            }
+        }
+    });
     let embedText = "";
     // It's possible I didn't make any entries or it's empty for the day.
     if (!digest || digest.length === 0) {
@@ -137,16 +144,19 @@ export interface FeedEntry {
  * Route to get next ingest queued.
  */
 app.get('/ingest', checkForKey, async (req, res) => {
-    let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
     // Get the next Sunday 10 AM of the week.
-    timeForDigest = timeForDigest.set({ weekday: 7, hour: 10, second: 0, minute: 0 });
-    const date = timeForDigest.toFormat("LLL dd, yyyy");
-    if (!entryStorage[date]) {
-        entryStorage[date] = [];
-        res.status(404).json([]);
-        return;
-    }
-    res.json(entryStorage[date]);
+    const timeForDigest = DateTime.now()
+      .setZone("America/Los_Angeles")
+      .set({ weekday: 7, hour: 10, second: 0, minute: 0 });
+    const feedEntries = await prisma.feedEntry.findMany({
+        where: {
+            date: {
+                gte: timeForDigest.minus({ weeks: 1 }).toJSDate(),
+                lt: timeForDigest.toJSDate(),
+            }
+        }
+    });
+    res.json(feedEntries);
 })
 
 /**
@@ -172,16 +182,14 @@ app.put('/ingest', checkForKey, async (req, res) => {
             throw new Error('Missing feed field!');
         }
         const feedEntry: FeedEntry = req.body;
-        let timeForDigest = DateTime.now().setZone("America/Los_Angeles");
-        // Get the next Sunday 10 AM of the week.
-        timeForDigest = timeForDigest.set({ weekday: 7, hour: 10, second: 0, minute: 0 });
-        const date = timeForDigest.toFormat("LLL dd, yyyy");
-
-        if (!entryStorage[date]) {
-            entryStorage[date] = [];
-        }
-        entryStorage[date].push(feedEntry);
-        Logger.info(`Saved feed entry '${feedEntry.title}' with URL '${feedEntry.link}' from feed '${feedEntry.feed}' for ${date}!`);
+        await prisma.feedEntry.create({
+            data: {
+                link: feedEntry.link,
+                title: feedEntry.title,
+                feed: feedEntry.feed,
+            },
+        });
+        Logger.info(`Saved feed entry '${feedEntry.title}' with URL '${feedEntry.link}' from feed '${feedEntry.feed}'!`);
         res.send('Saved feed entry!');
     } catch (e) {
         res.status(400).send(`Cannot parse feed JSON: ${e}`);

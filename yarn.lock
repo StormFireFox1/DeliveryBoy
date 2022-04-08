@@ -27,6 +27,23 @@
   resolved "https://registry.yarnpkg.com/@discordjs/collection/-/collection-0.4.0.tgz#b6488286a1cc7b41b644d7e6086f25a1c1e6f837"
   integrity sha512-zmjq+l/rV35kE6zRrwe8BHqV78JvIh2ybJeZavBi5NySjWXqN3hmmAKg7kYMMXSeiWtSsMoZ/+MQi0DiQWy2lw==
 
+"@prisma/client@3.12.0":
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/@prisma/client/-/client-3.12.0.tgz#a0eb49ffea5c128dd11dffb896d7139a60073d12"
+  integrity sha512-4NEQjUcWja/NVBvfuDFscWSk1/rXg3+wj+TSkqXCb1tKlx/bsUE00rxsvOvGg7VZ6lw1JFpGkwjwmsOIc4zvQw==
+  dependencies:
+    "@prisma/engines-version" "3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980"
+
+"@prisma/engines-version@3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980":
+  version "3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980"
+  resolved "https://registry.yarnpkg.com/@prisma/engines-version/-/engines-version-3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980.tgz#829ca3d9d0d92555f44644606d4edfd45b2f5886"
+  integrity sha512-o+jo8d7ZEiVpcpNWUDh3fj2uPQpBxl79XE9ih9nkogJbhw6P33274SHnqheedZ7PyvPIK/mvU8MLNYgetgXPYw==
+
+"@prisma/engines@3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980":
+  version "3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980"
+  resolved "https://registry.yarnpkg.com/@prisma/engines/-/engines-3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980.tgz#e52e364084c4d05278f62768047b788665e64a45"
+  integrity sha512-zULjkN8yhzS7B3yeEz4aIym4E2w1ChrV12i14pht3ePFufvsAvBSoZ+tuXMvfSoNTgBS5E4bolRzLbMmbwkkMQ==
+
 "@sapphire/async-queue@^1.1.9":
   version "1.1.9"
   resolved "https://registry.yarnpkg.com/@sapphire/async-queue/-/async-queue-1.1.9.tgz#ce69611c8753c4affd905a7ef43061c7eb95c01b"
@@ -638,6 +655,13 @@ path-to-regexp@0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/path-to-regexp/-/path-to-regexp-0.1.7.tgz#df604178005f522f15eb4490e7247a1bfaa67f8c"
   integrity sha1-32BBeABfUi8V60SQ5yR6G/qmf4w=
+
+prisma@^3.12.0:
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/prisma/-/prisma-3.12.0.tgz#9675e0e72407122759d3eadcb6d27cdccd3497bd"
+  integrity sha512-ltCMZAx1i0i9xuPM692Srj8McC665h6E5RqJom999sjtVSccHSD8Z+HSdBN2183h9PJKvC5dapkn78dd0NWMBg==
+  dependencies:
+    "@prisma/engines" "3.12.0-37.22b822189f46ef0dc5c5b503368d1bee01213980"
 
 proxy-addr@~2.0.7:
   version "2.0.7"
