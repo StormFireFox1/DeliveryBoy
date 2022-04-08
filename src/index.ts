@@ -61,7 +61,7 @@ const sendIngest = async () => {
     } else {
         // ..otherwise, make the description text.
         digest.forEach((entry, index) => {
-            embedText += `**${index + 1}.** _${entry.title}_: ${entry.link}`
+            embedText += `**${index + 1}.** [${entry.title}](${entry.link})`
             embedText += "\n";
             embedText += `_Feed:_ \`${entry.feed}\``
             embedText += "\n";
