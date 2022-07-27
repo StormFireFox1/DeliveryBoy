@@ -54,9 +54,9 @@ const sendIngest = async () => {
   // It's possible I didn't make any entries or it's empty for the day.
   if (!digest || digest.length === 0) {
     const webhookEmbed = new MessageEmbed()
-      .setTitle('Nothing this week! Sorry! 😅')
+      .setTitle('Nothing this week! 😅')
       .setColor('RED')
-      .setDescription('Matei be slacking smh')
+      .setDescription('Just a chill week with no big reads...')
       .setFooter({
         text: "Disclaimer: It's possible I missed all of Matei's messages. Oops.",
       });
@@ -75,15 +75,10 @@ const sendIngest = async () => {
       embedText += `_Feed:_ \`${entry.feed}\``;
       embedText += '\n';
     });
-    // If too few...
-    if (digest.length < 10) {
+    // If too many articles...
+    if (digest.length > 10) {
       embedText += '\n';
-      embedText += "Matei was quite lazy this week. He didn't send 10 articles! 🙄";
-      embedText += '\n';
-      // If too many...
-    } else if (digest.length > 10) {
-      embedText += '\n';
-      embedText += 'Sorry for the amount! Just a few more!';
+      embedText += 'Just a few more this time around!';
       embedText += '\n';
     }
     // Either way, send what we got.
