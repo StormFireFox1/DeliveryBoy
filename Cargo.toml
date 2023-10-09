@@ -1,0 +1,24 @@
+[package]
+name = "delivery_boy"
+version = "0.0.1"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serenity = { version = "0.11.5", features = ["model"] }
+serde = "1.0.135"
+url = "2.2.2"
+chrono = "0.4.24"
+chrono-tz = "0.8.2"
+clokwerk = "0.4.0"
+tokio = { version = "1.28.1", features = ["macros", "rt-multi-thread"] }
+sqlx = { version = "0.6.3", features = ["runtime-tokio-native-tls", "sqlite", "time", "chrono"] }
+anyhow = "1.0.71"
+tracing-subscriber = "0.3.17"
+axum = { version = "0.6.18", features = ["headers"] }
+dotenv = "0.15.0"
+tracing = "0.1.37"
+tower = "0.4.13"
+tower-http = { version = "0.4.0", features = ["trace"] }
+reqwest = "0.11.22"

@@ -6,9 +6,8 @@ A little web app that sends a formatted embed of RSS articles to a Discord webho
 
 Fill `.env.example` into `.env` and:
 
-```sh
-yarn install
-yarn start
+```
+cargo run
 ```
 
 Then, whenever you want to add a feed for the next ingest to send, send a `PUT` request at `/ingest` with the following JSON body:
