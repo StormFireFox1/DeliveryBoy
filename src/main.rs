@@ -105,7 +105,7 @@ async fn get_feed_entries(
         r#"
         SELECT *
         FROM feed_entry
-        WHERE timestamp > datetime('now', '-7 days');
+        WHERE timestamp > datetime('now', 'weekday 0', '-7 days');
         "#
     )
     .fetch_all(&state.database)
@@ -145,7 +145,7 @@ async fn post_digest(state: Extension<Arc<DeliveryBoyState>>) -> Result<&'static
         r#"
         SELECT *
         FROM feed_entry
-        WHERE timestamp > datetime('now', '-7 days');
+        WHERE timestamp > datetime('now', 'weekday 0', '-7 days');
         "#
     )
     .fetch_all(&state.database)
