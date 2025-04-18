@@ -285,7 +285,7 @@ async fn main() -> anyhow::Result<()> {
             .expect("Could not connect to database!");
         // Run migrations to get database up to date.
         // Should update schema.
-        sqlx::migrate!("db/migrations").run(&pool).await?;
+        sqlx::migrate!("./migrations").run(&pool).await?;
     }
 
     let pool = SqlitePool::connect(&db_url)

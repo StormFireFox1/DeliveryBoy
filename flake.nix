@@ -53,7 +53,7 @@
               root = unfilteredRoot;
               fileset = lib.fileset.unions [
                 (craneLib.fileset.commonCargoSources unfilteredRoot)
-                ./db/migrations
+                ./migrations
               ];
             };
 
@@ -83,7 +83,7 @@
                     pkgs.pkgsBuildHost.sqlx-cli
                   ];
                 preBuild = ''
-                  export DATABASE_URL=sqlite:./db/delivery_boy.db
+                  export DATABASE_URL=sqlite:./delivery_boy.db
                   sqlx database create
                   sqlx migrate run
                 '';
