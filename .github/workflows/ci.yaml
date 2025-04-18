@@ -1,0 +1,120 @@
+name: DeliveryBoy CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  actions: write
+  packages: write
+
+env:
+  nix_conf: |
+    keep-env-derivations = true
+    keep-outputs = true
+
+jobs:
+  check:
+    name: "Check Flake"
+    strategy:
+      matrix:
+        arch: ["x86_64-linux", "aarch64-linux"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nixbuild/nix-quick-install-action@v30
+        with:
+          nix_conf: ${{ env.nix_conf }}
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          # restore and save a cache using this key
+          primary-key: nix-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          # if there's no cache hit, restore a cache by this prefix
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          # Do not override the build cache
+          save: false
+          # TTL 1 week
+          purge-created: 604800
+          purge-primary-key: never
+      - name: "Run checks"
+        run: nix flake check --no-build
+  build:
+    name: "Build"
+    needs: check
+    strategy:
+      matrix:
+        arch: ["x86_64-linux", "aarch64-linux"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nixbuild/nix-quick-install-action@v30
+        with:
+          nix_conf: ${{ env.nix_conf }}
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          # restore and save a cache using this key
+          primary-key: nix-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          # if there's no cache hit, restore a cache by this prefix
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+          # Do not purge cache during intermediary step.
+          purge: false
+      - name: "Build package"
+        run: nix build .#${{ matrix.arch }}
+  push-docker:
+    name: "Push Docker Image"
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    strategy:
+      matrix:
+        arch: ["x86_64-linux", "aarch64-linux"]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: nixbuild/nix-quick-install-action@v30
+        with:
+          nix_conf: ${{ env.nix_conf }}
+      - uses: nix-community/cache-nix-action@v6
+        with:
+          # restore and save a cache using this key
+          primary-key: nix-${{ runner.os }}-${{ matrix.arch }}-${{ hashFiles('**/*.nix', '**/flake.lock') }}
+          # if there's no cache hit, restore a cache by this prefix
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-linux: 5G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          # TTL 1 week
+          purge-created: 604800
+          purge-primary-key: never
+      - name: "Build Docker image"
+        run: nix build .#docker-${{ matrix.arch }}
+      - name: "Login to GHCR"
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: "Load & Push Docker image"
+        run: |
+          GITHUB_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
+          ./result | docker load
+          SHA_IMAGE_REPO="ghcr.io/StormFireFox1/DeliveryBoy:${{ matrix.arch }}-$GITHUB_SHA"
+          LATEST_ARCH_IMAGE_REPO="ghcr.io/StormFireFox1/DeliveryBoy:${{ matrix.arch }}-latest"
+          LATEST_IMAGE_REPO="ghcr.io/StormFireFox1/DeliveryBoy:latest"
+          docker tag delivery_boy:latest "$SHA_IMAGE_REPO"
+          docker tag delivery_boy:latest "$LATEST_ARCH_IMAGE_REPO"
+          docker push "$SHA_IMAGE_REPO"
+          docker push "$LATEST_ARCH_IMAGE_REPO"
+  set-docker-tags:
+    name: "Set Docker Image Manifests"
+    needs: push-docker
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Login to GHCR"
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: "Setup latest image manifest"
+        run: |
+          docker manifest create "ghcr.io/StormFireFox1/DeliveryBoy:latest" "ghcr.io/StormFireFox1/DeliveryBoy:x86_64-linux-latest" "ghcr.io/StormFireFox1/DeliveryBoy:aarch64-linux-latest"
+          docker manifest push "ghcr.io/StormFireFox1/DeliveryBoy:latest"
