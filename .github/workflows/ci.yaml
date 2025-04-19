@@ -98,11 +98,11 @@ jobs:
         run: |
           GITHUB_SHA=$(echo ${{ github.sha }} | cut -c 1-7)
           ./result | docker load
-          SHA_IMAGE_REPO="ghcr.io/stormfirefox1/deliveryboy:${{ matrix.arch }}-$GITHUB_SHA"
-          LATEST_ARCH_IMAGE_REPO="ghcr.io/stormfirefox1/deliveryboy:${{ matrix.arch }}-latest"
-          LATEST_IMAGE_REPO="ghcr.io/stormfirefox1/deliveryboy:latest"
-          docker tag delivery_boy:latest "$SHA_IMAGE_REPO"
-          docker tag delivery_boy:latest "$LATEST_ARCH_IMAGE_REPO"
+          SHA_IMAGE_REPO="ghcr.io/stormfirefox1/delivery-boy:${{ matrix.arch }}-$GITHUB_SHA"
+          LATEST_ARCH_IMAGE_REPO="ghcr.io/stormfirefox1/delivery-boy:${{ matrix.arch }}-latest"
+          LATEST_IMAGE_REPO="ghcr.io/stormfirefox1/delivery-boy:latest"
+          docker tag delivery-boy:latest "$SHA_IMAGE_REPO"
+          docker tag delivery-boy:latest "$LATEST_ARCH_IMAGE_REPO"
           docker push "$SHA_IMAGE_REPO"
           docker push "$LATEST_ARCH_IMAGE_REPO"
   set-docker-tags:
@@ -116,5 +116,5 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: "Setup latest image manifest"
         run: |
-          docker manifest create "ghcr.io/stormfirefox1/deliveryboy:latest" "ghcr.io/stormfirefox1/deliveryboy:x86_64-linux-latest" "ghcr.io/stormfirefox1/deliveryboy:aarch64-linux-latest"
-          docker manifest push "ghcr.io/stormfirefox1/deliveryboy:latest"
+          docker manifest create "ghcr.io/stormfirefox1/delivery-boy:latest" "ghcr.io/stormfirefox1/delivery-boy:x86_64-linux-latest" "ghcr.io/stormfirefox1/delivery-boy:aarch64-linux-latest"
+          docker manifest push "ghcr.io/stormfirefox1/delivery-boy:latest"
